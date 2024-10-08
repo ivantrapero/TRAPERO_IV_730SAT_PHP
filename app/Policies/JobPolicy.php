@@ -10,6 +10,9 @@ class JobPolicy
 {
     public function edit(User $user, Job $job): bool
     {
-        return $job->employer->user->is($user);
+        // Check if the employer and user exist before checking equality
+        return $job->employer && $job->employer->user 
+            ? $job->employer->user->is($user) 
+            : false;
     }
 }

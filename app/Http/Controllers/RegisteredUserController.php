@@ -19,14 +19,22 @@ class RegisteredUserController extends Controller
         $attributes = request()->validate([
             'first_name' => ['required'],
             'last_name'  => ['required'],
-            'email'      => ['required', 'email'],
-            'password'   => ['required', Password::min(6), 'confirmed']
+            'email'      => ['required', 'email', 'unique:users,email'], // Added unique validation
+            'password'   => ['required', Password::min(6), 'confirmed'],
         ]);
 
-        $user = User::create($attributes);
+        // Create the user
+        $user = User::create([
+            'first_name' => $attributes['first_name'],
+            'last_name'  => $attributes['last_name'],
+            'email'      => $attributes['email'],
+            'password'   => bcrypt($attributes['password']), // Hash the password
+        ]);
 
+        // Log the user in
         Auth::login($user);
 
+        // Redirect to jobs page
         return redirect('/jobs');
     }
 }

@@ -38,14 +38,21 @@ class JobController extends Controller
         $job = Job::create([
             'title' => request('title'),
             'salary' => request('salary'),
-            'employer_id' => 1
+            'employer_id' => 1, // Adjust this as necessary for your application
         ]);
 
-        Mail::to($job->employer->user)->queue(
-            new JobPosted($job)
-        );
+        // Check if the employer and user exist before sending the email
+        if ($job->employer && $job->employer->user) {
+            Mail::to($job->employer->user)->queue(new JobPosted($job));
+        } else {
+            // Log an error or handle the case where employer or user does not exist
+            \Log::warning('Job posted but employer or user does not exist', [
+                'job_id' => $job->id,
+                'employer_id' => $job->employer_id
+            ]);
+        }
 
-        return redirect('/jobs');
+        return redirect('/jobs')->with('success', 'Job created successfully!');
     }
 
     public function edit(Job $job)
@@ -67,7 +74,7 @@ class JobController extends Controller
             'salary' => request('salary'),
         ]);
 
-        return redirect('/jobs/' . $job->id);
+        return redirect('/jobs/' . $job->id)->with('success', 'Job updated successfully!');
     }
 
     public function destroy(Job $job)
@@ -76,6 +83,6 @@ class JobController extends Controller
 
         $job->delete();
 
-        return redirect('/jobs');
+        return redirect('/jobs')->with('success', 'Job deleted successfully!');
     }
 }
